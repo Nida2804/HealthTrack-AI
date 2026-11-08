@@ -29,14 +29,25 @@ MANDATORY_DISCLAIMER = (
 
 def get_gemini_api_key(override_key: Optional[str] = None) -> Optional[str]:
     """
-    Retrieve the Gemini API key from environment variable GEMINI_API_KEY
-    or an optional user-provided runtime override.
-    Never hardcodes any credentials.
+    Retrieve Gemini API key from runtime override,
+    environment variables, or Streamlit secrets.
     """
     if override_key and override_key.strip():
         return override_key.strip()
+
     key = os.getenv("GEMINI_API_KEY", "").strip()
-    return key if key else None
+    if key:
+        return key
+
+    try:
+        import streamlit as st
+        key = st.secrets.get("GEMINI_API_KEY", "").strip()
+        if key:
+            return key
+    except Exception:
+        pass
+
+    return None
 
 
 def is_gemini_configured(override_key: Optional[str] = None) -> bool:
